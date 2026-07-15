@@ -93,6 +93,25 @@ export const updateTableName = async (req, res) => {
     }
 };
 
+// Update hide-names flag for the table
+export const updateHideNames = async (req, res) => {
+    try {
+        const { tableId } = req.params;
+        const { hideNames } = req.body;
+        const table = await Table.findOneAndUpdate(
+            { tableId },
+            { hideNames: Boolean(hideNames) },
+            { new: true }
+        );
+        if (!table) {
+            return res.status(404).json({ message: "Jadval topilmadi" });
+        }
+        return res.status(200).json(table);
+    } catch (error) {
+        return res.status(500).json({ message: "Server xatoligi", error: error.message });
+    }
+};
+
 // Update full table rows (for bulk save)
 export const updateFullTable = async (req, res) => {
     try {
@@ -165,6 +184,7 @@ export const createRow = async (req, res) => {
         const newRow = {
             name: req.body.name || "Yangi xodim",
             role: req.body.role || "",
+            hideName: false,
             tasks: [{
                 name: "",
                 description: "",
@@ -185,7 +205,7 @@ export const createRow = async (req, res) => {
 export const updateRow = async (req, res) => {
     try {
         const { tableId, rowId } = req.params;
-        const { name, role } = req.body;
+        const { name, role, hideName } = req.body;
         const table = await Table.findOne({ tableId });
         if (!table) {
             return res.status(404).json({ message: "Jadval topilmadi" });
@@ -196,6 +216,7 @@ export const updateRow = async (req, res) => {
         }
         if (name !== undefined) row.name = name;
         if (role !== undefined) row.role = role;
+        if (hideName !== undefined) row.hideName = Boolean(hideName);
         await table.save();
         return res.status(200).json(table);
     } catch (error) {

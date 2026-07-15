@@ -32,6 +32,10 @@ const rowSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    hideName: {
+        type: Boolean,
+        default: false,
+    },
     tasks: [taskSchema],
 }, { timestamps: true });
 
@@ -48,6 +52,10 @@ const tableSchema = new mongoose.Schema({
     roles: [{
         type: String,
     }],
+    hideNames: {
+        type: Boolean,
+        default: false,
+    },
     rows: [rowSchema],
 }, { timestamps: true });
 

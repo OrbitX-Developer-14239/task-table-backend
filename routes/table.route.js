@@ -7,6 +7,7 @@ import {
     deleteTable,
     regenerateTableId,
     updateTableName,
+    updateHideNames,
     updateFullTable,
     addRole,
     deleteRole,
@@ -30,6 +31,7 @@ router.get("/:tableId", authMiddleware, getTableById);
 router.delete("/:tableId", authMiddleware, deleteTable);
 router.patch("/:tableId/regenerate", authMiddleware, regenerateTableId);
 router.patch("/:tableId/name", authMiddleware, updateTableName);
+router.patch("/:tableId/hide-names", authMiddleware, updateHideNames);
 router.put("/:tableId", authMiddleware, updateFullTable);
 
 // Roles
