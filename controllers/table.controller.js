@@ -1,6 +1,26 @@
 import Table from "../models/table.model.js";
 import { v4 as uuidv4 } from "uuid";
 
+const TELEGRAM_LINK_PATTERN = /^\[([^\]]+)\]\((tg:\/\/.+|https:\/\/t\.me\/.+)\)$/;
+
+const validateTelegramLinkValue = (value) => {
+    if (typeof value !== "string") return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (!TELEGRAM_LINK_PATTERN.test(trimmed)) {
+        return "Noto'g'ri Telegram link formati. Namuna: [text](https://t.me/username) yoki [text](tg://resolve?domain=username)";
+    }
+    return null;
+};
+
+const validateTaskPayload = (rowsPayload) => {
+    for (const row of rowsPayload || []) {
+        const rowTelegramLinkError = validateTelegramLinkValue(row?.telegramLink);
+        if (rowTelegramLinkError) return rowTelegramLinkError;
+    }
+    return null;
+};
+
 // Get all tables
 export const getAllTables = async (req, res) => {
     try {
@@ -117,6 +137,10 @@ export const updateFullTable = async (req, res) => {
     try {
         const { tableId } = req.params;
         const { rows } = req.body;
+        const validationError = validateTaskPayload(rows);
+        if (validationError) {
+            return res.status(400).json({ message: validationError });
+        }
         const table = await Table.findOneAndUpdate(
             { tableId },
             { rows },
@@ -184,6 +208,7 @@ export const createRow = async (req, res) => {
         const newRow = {
             name: req.body.name || "Yangi xodim",
             role: req.body.role || "",
+            telegramLink: req.body.telegramLink || "",
             hideName: false,
             tasks: [{
                 name: "",
@@ -205,7 +230,11 @@ export const createRow = async (req, res) => {
 export const updateRow = async (req, res) => {
     try {
         const { tableId, rowId } = req.params;
-        const { name, role, hideName } = req.body;
+        const { name, role, hideName, telegramLink } = req.body;
+        const validationError = validateTelegramLinkValue(telegramLink);
+        if (validationError) {
+            return res.status(400).json({ message: validationError });
+        }
         const table = await Table.findOne({ tableId });
         if (!table) {
             return res.status(404).json({ message: "Jadval topilmadi" });
@@ -216,7 +245,9 @@ export const updateRow = async (req, res) => {
         }
         if (name !== undefined) row.name = name;
         if (role !== undefined) row.role = role;
+        if (telegramLink !== undefined) row.telegramLink = telegramLink;
         if (hideName !== undefined) row.hideName = Boolean(hideName);
+        table.markModified('rows');
         await table.save();
         return res.status(200).json(table);
     } catch (error) {
@@ -273,6 +304,7 @@ export const updateTask = async (req, res) => {
     try {
         const { tableId, rowId, taskId } = req.params;
         const { name, description, startDate, endDate, delay } = req.body;
+        // removed validateTelegramLinkValue for task fields
         const table = await Table.findOne({ tableId });
         if (!table) {
             return res.status(404).json({ message: "Jadval topilmadi" });

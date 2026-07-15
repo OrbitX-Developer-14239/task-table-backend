@@ -32,6 +32,10 @@ const rowSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    telegramLink: {
+        type: String,
+        default: "",
+    },
     hideName: {
         type: Boolean,
         default: false,
